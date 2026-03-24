@@ -32,4 +32,12 @@ export default tseslint.config(
       "prettier/prettier": ["error", { endOfLine: "auto", tabWidth: 2, useTabs: false }],
     },
   },
+  // class-validator decorators often surface as "error" types to the type checker under
+  // strict type-checked ESLint (no-unsafe-call: "could not be resolved").
+  {
+    files: ['**/*.dto.ts'],
+    rules: {
+      '@typescript-eslint/no-unsafe-call': 'off',
+    },
+  },
 );

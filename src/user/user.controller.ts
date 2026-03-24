@@ -1,5 +1,13 @@
-import { Controller, Get, HttpStatus, HttpException } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseIntPipe,
+  Post,
+} from '@nestjs/common';
 import { UserService } from './user.service';
+import { UserRegisterDto } from './dto/user-register.dto';
 
 @Controller('user')
 export class UserController {
@@ -7,7 +15,16 @@ export class UserController {
 
   @Get('get-users')
   getUsers(): string[] {
-    // return this.userService.getUsers();
-    throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+    return this.userService.getUsers();
+  }
+
+  @Get('get-user/:id')
+  getUser(@Param('id', ParseIntPipe) id: number): number {
+    return this.userService.getUser(id);
+  }
+
+  @Post('register')
+  register(@Body() userRegisterDto: UserRegisterDto): void {
+    console.log(userRegisterDto);
   }
 }

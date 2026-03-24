@@ -5,4 +5,7 @@ export class UserService {
   getUsers(): string[] {
     return ['John', 'Jane', 'Jim', 'Jill'];
   }
+  getUser(id: number): number {
+    return id;
+  }
 }
