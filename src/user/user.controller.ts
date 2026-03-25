@@ -6,10 +6,11 @@ import {
   Param,
   ParseIntPipe,
   Post,
+  Put,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UserRegisterDto } from './dto/user-register.dto';
-import { UserExistPipe } from './pipes.user-exist.pipe';
+import { UserExistPipe } from './pipes/user-exist.pipe';
 import { User } from './entity/user.entity';
 
 @Controller('user')
@@ -30,11 +31,12 @@ export class UserController {
   async register(@Body() userRegisterDto: UserRegisterDto): Promise<User> {
     return await this.userService.createUser(userRegisterDto);
   }
-  @Post('update-user/:id')
+  @Put('update-user/:id')
   async updateUser(
-    @Param('id', ParseIntPipe, UserExistPipe) user: User,
+    @Param('id', ParseIntPipe, UserExistPipe) id: number,
+    @Body() updateData: Partial<User>,
   ): Promise<User> {
-    return this.userService.updateUser(user.id, user);
+    return this.userService.updateUser(id, updateData);
   }
   @Delete('delete-user/:id')
   async deleteUser(
