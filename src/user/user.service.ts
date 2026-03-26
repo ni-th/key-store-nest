@@ -39,4 +39,10 @@ export class UserService {
   async deleteUser(id: number): Promise<void> {
     await this.userRepository.delete(id);
   }
+
+  async searchByEmail(email: string): Promise<User | null> {
+    return this.userRepository.findOne({
+      where: { email: email },
+    });
+  }
 }
