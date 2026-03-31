@@ -7,16 +7,20 @@ import {
   ParseIntPipe,
   Post,
   Put,
+  UseGuards,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UserRegisterDto } from './dto/user-register.dto';
 import { UserExistPipe } from './pipes/user-exist.pipe';
 import { User } from './entity/user.entity';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 
-@Controller('user')
+@Controller('api/user')
+@UseGuards(JwtAuthGuard)
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
+  
   @Get('get-users')
   async getUsers(): Promise<User[]> {
     return this.userService.getUsers();

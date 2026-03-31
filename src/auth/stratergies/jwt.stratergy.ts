@@ -3,13 +3,24 @@ import { PassportStrategy } from '@nestjs/passport';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { Strategy } from 'passport-jwt';
 import { ExtractJwt } from 'passport-jwt';
-import { UserService } from 'src/user/user.service'; // Import UserService, not AuthService
+import { UserService } from 'src/user/user.service';
+import { Request } from 'express';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor(private userService: UserService) { // Use UserService directly
+  constructor(private userService: UserService) {
     super({
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      // CHANGE THIS: Extract JWT from cookie instead of Authorization header
+      jwtFromRequest: ExtractJwt.fromExtractors([
+        (request: Request) => {
+          // Get token from cookie
+          const token = request?.cookies?.access_token;
+          if (!token) {
+            return null;
+          }
+          return token;
+        },
+      ]),
       secretOrKey: process.env.JWT_SECRET || '1234',
       ignoreExpiration: false,
     });

@@ -6,7 +6,6 @@ import { UserLoginDto } from 'src/user/dto/user-login.dto';
 import { UserRegisterDto } from 'src/user/dto/user-register.dto';
 import { DeepPartial, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { access } from 'fs';
 import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
