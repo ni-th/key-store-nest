@@ -75,7 +75,7 @@ export class AuthService {
     try {
       // Verify refresh token
       const payload = this.jwtService.verify(refreshToken, {
-        secret: process.env.JWT_REFRESH_SECRET || 'refresh-secret-key'
+        secret: this.getRefreshTokenSecret(),
       });
       
       // Get user from database
@@ -102,7 +102,7 @@ export class AuthService {
   private generateAccessToken(user: User) {
     const payload = { sub: user.id, email: user.email, role: user.role };
     return this.jwtService.sign(payload, {
-      secret: process.env.JWT_SECRET,
+      secret: this.getAccessTokenSecret(),
       expiresIn: '15m',
     });
   }
@@ -110,9 +110,17 @@ export class AuthService {
   private generateRefreshToken(user: User) {
     const payload = { sub: user.id };
     return this.jwtService.sign(payload, {
-      secret: process.env.JWT_SECRET,
+      secret: this.getRefreshTokenSecret(),
       expiresIn: '7d',
     })
+  }
+
+  private getAccessTokenSecret() {
+    return process.env.JWT_SECRET || '1234';
+  }
+
+  private getRefreshTokenSecret() {
+    return process.env.JWT_REFRESH_SECRET || 'refresh-secret-key';
   }
 
   validateUser(id: number) {
