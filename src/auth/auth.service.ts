@@ -69,7 +69,7 @@ export class AuthService {
     if (existUser) {
       throw new UnauthorizedException('User already exists');
     }
-    const passwordHash = await bcrypt.hash(userRegisterDto.password, 10);
+    const passwordHash = bcrypt.hashSync(userRegisterDto.password, 10);
         const partial: DeepPartial<User> = {
           name: userRegisterDto.name,
           email: userRegisterDto.email,

@@ -13,7 +13,7 @@ export class UserService {
     private userRepository: Repository<User>,
   ) {}
   async createUser(dto: UserRegisterDto): Promise<User> {
-    const passwordHash = await bcrypt.hash(dto.password, 10);
+    const passwordHash = bcrypt.hashSync(dto.password, 10);
     const partial: DeepPartial<User> = {
       name: dto.name,
       email: dto.email,

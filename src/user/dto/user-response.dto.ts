@@ -3,17 +3,17 @@ import { UserRole } from '../enums/user-role.enum';
 
 export class UserResponseDto {
       @Expose()
-      id: number;
+      id!: number;
 
       @Expose()
-      name: string;
+      name?: string;
 
       @Expose()
-      email: string;
+      email?: string;
 
       @Expose()
-      avatar: string;
+      avatar?: string;
 
       @Expose()
-      role: UserRole;
+      role!: UserRole;
 }
