@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { User, UserRole } from './entity/user.entity';
+import { User } from './entity/user.entity';
+import { UserRole } from './enums/user-role.enum';
 import { DeepPartial, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserRegisterDto } from './dto/user-register.dto';

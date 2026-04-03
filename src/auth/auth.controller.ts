@@ -1,8 +1,7 @@
 // auth.controller.ts
 import { Controller, Post, Body, HttpCode, HttpStatus, UseGuards, Get, Res, Req, UnauthorizedException } from '@nestjs/common';
-import { AuthService } from './auth.service';
+import { AuthService, GoogleUserPayload } from './auth.service';
 import { UserLoginDto } from 'src/user/dto/user-login.dto';
-import { User } from 'src/user/entity/user.entity';
 import { UserRegisterDto } from 'src/user/dto/user-register.dto';
 import { CurrentUser } from './decorators/current-user.decorator';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
@@ -96,7 +95,7 @@ export class AuthController {
         @Get('google/callback')
         @UseGuards(GoogleAuthGuard)
         async googleAuthCallback(
-            @Req() req: Request & { user?: any },
+            @Req() req: Request & { user?: GoogleUserPayload },
             @Res({ passthrough: true }) res: Response,
         ) {
             if (!req.user) {

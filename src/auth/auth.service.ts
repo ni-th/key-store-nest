@@ -1,18 +1,30 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { UserService } from 'src/user/user.service';
-import { User, UserRole } from 'src/user/entity/user.entity';
+import { User } from 'src/user/entity/user.entity';
 import * as bcrypt from 'bcrypt';
 import { UserLoginDto } from 'src/user/dto/user-login.dto';
 import { UserRegisterDto } from 'src/user/dto/user-register.dto';
 import { DeepPartial, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { JwtService } from '@nestjs/jwt';
+import { UserRole } from 'src/user/enums/user-role.enum';
+import { UserMapper } from 'src/user/mapper/user.mapper';
+import { UserResponseDto } from 'src/user/dto/user-response.dto';
 
-type GoogleUserPayload = {
+export type GoogleUserPayload = {
   email: string;
   googleId: string;
   name?: string;
   avatar?: string;
+};
+
+type AuthTokens = {
+  access_token: string;
+  refresh_token: string;
+};
+
+type AuthResponse = AuthTokens & {
+  user: UserResponseDto;
 };
 
 @Injectable()
@@ -26,11 +38,7 @@ export class AuthService {
   // login
   async signIn(
     userLoginDto: UserLoginDto,
-  ): Promise<{
-    user: Omit<User, 'password'>;
-    access_token: string;
-    refresh_token: string;
-  }> {
+  ): Promise<AuthResponse> {
 
     const user = await this.userService.searchByEmail(userLoginDto.email);
 
@@ -51,16 +59,10 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const { password, ...result } = user;
-    const tokens = this.generateTokens(user);
-    
-    return {
-      user: result,
-      ...tokens
-    };
+    return this.createAuthResponse(user);
   }
 
-  async signUp(userRegisterDto: UserRegisterDto) {
+  async signUp(userRegisterDto: UserRegisterDto): Promise<AuthResponse> {
     const existUser = await this.userService.searchByEmail(
       userRegisterDto.email,
     );
@@ -74,12 +76,8 @@ export class AuthService {
           password: passwordHash,
           role: UserRole.USER,
         };
-      const user = await this.userRepository.save(partial);
-      const tokens = this.generateTokens(user);
-      return {
-        ...tokens,
-        user,
-      };
+    const user = await this.userRepository.save(partial);
+    return this.createAuthResponse(user);
   }
 
   async refreshToken(refreshToken: string) {
@@ -103,7 +101,7 @@ export class AuthService {
     }
   }
 
-  async googleLogin(googleUser: GoogleUserPayload) {
+  async googleLogin(googleUser: GoogleUserPayload): Promise<AuthResponse> {
     let user = await this.userService.searchByEmail(googleUser.email);
 
     if (!user) {
@@ -130,20 +128,21 @@ export class AuthService {
       user = (await this.userService.getUser(user.id)) as User;
     }
 
-    const tokens = this.generateTokens(user);
-    const { password, ...safeUser } = user;
+    return this.createAuthResponse(user);
+  }
 
+  private createAuthResponse(user: User): AuthResponse {
     return {
-      user: safeUser,
-      ...tokens,
+      ...this.generateTokens(user),
+      user: UserMapper.toResponse(user),
     };
   }
 
-  private generateTokens(user: User) {
+  private generateTokens(user: User): AuthTokens {
     return {
       access_token: this.generateAccessToken(user),
       refresh_token: this.generateRefreshToken(user),
-    }
+    };
   }
 
   private generateAccessToken(user: User) {
