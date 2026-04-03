@@ -7,6 +7,7 @@ import { UserRegisterDto } from 'src/user/dto/user-register.dto';
 import { CurrentUser } from './decorators/current-user.decorator';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import type { Response, Request } from 'express'; // Add Request import
+import { GoogleAuthGuard } from './guards/google-auth.guard';
 
 @Controller('api/auth')
 export class AuthController {
@@ -85,6 +86,44 @@ export class AuthController {
         
         return { message: 'Logged out successfully' };
     }
+
+        @Get('google')
+        @UseGuards(GoogleAuthGuard)
+        googleAuth() {
+            return;
+        }
+
+        @Get('google/callback')
+        @UseGuards(GoogleAuthGuard)
+        async googleAuthCallback(
+            @Req() req: Request & { user?: any },
+            @Res({ passthrough: true }) res: Response,
+        ) {
+            if (!req.user) {
+                throw new UnauthorizedException('Google authentication failed');
+            }
+
+            const { user, access_token, refresh_token } =
+                await this.authService.googleLogin(req.user);
+
+            res.cookie('access_token', access_token, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'strict',
+                maxAge: 15 * 60 * 1000,
+                path: '/',
+            });
+
+            res.cookie('refresh_token', refresh_token, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'strict',
+                maxAge: 7 * 24 * 60 * 60 * 1000,
+                path: '/',
+            });
+
+            return { user };
+        }
 
     // ✅ FIXED: Read refresh token from cookie, not from body
     @Post('refresh')

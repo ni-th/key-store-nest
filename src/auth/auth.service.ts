@@ -8,6 +8,13 @@ import { DeepPartial, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { JwtService } from '@nestjs/jwt';
 
+type GoogleUserPayload = {
+  email: string;
+  googleId: string;
+  name?: string;
+  avatar?: string;
+};
+
 @Injectable()
 export class AuthService {
   constructor(private userService: UserService,
@@ -29,6 +36,10 @@ export class AuthService {
 
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
+    }
+
+    if (!user.password) {
+      throw new UnauthorizedException('This account uses Google login');
     }
 
     const isPasswordValid = await bcrypt.compare(
@@ -90,6 +101,42 @@ export class AuthService {
     } catch (error) {
       throw new UnauthorizedException('Invalid refresh token');
     }
+  }
+
+  async googleLogin(googleUser: GoogleUserPayload) {
+    let user = await this.userService.searchByEmail(googleUser.email);
+
+    if (!user) {
+      const partial: DeepPartial<User> = {
+        email: googleUser.email,
+        googleId: googleUser.googleId,
+        name: googleUser.name || googleUser.email.split('@')[0],
+        avatar: googleUser.avatar,
+        role: UserRole.USER,
+      };
+
+      user = await this.userRepository.save(partial);
+    } else {
+      const updateData: DeepPartial<User> = {
+        googleId: user.googleId || googleUser.googleId,
+        avatar: googleUser.avatar || user.avatar,
+      };
+
+      if (!user.name && googleUser.name) {
+        updateData.name = googleUser.name;
+      }
+
+      await this.userRepository.update(user.id, updateData);
+      user = (await this.userService.getUser(user.id)) as User;
+    }
+
+    const tokens = this.generateTokens(user);
+    const { password, ...safeUser } = user;
+
+    return {
+      user: safeUser,
+      ...tokens,
+    };
   }
 
   private generateTokens(user: User) {
