@@ -30,4 +30,10 @@ export class User {
     enumName: 'user_role',
   })
   role!: UserRole;
+
+  @Column({ default: false })
+  isDeleted?: boolean;
+  
+  @Column({ nullable: true })
+  createdAt?: Date;
 }
