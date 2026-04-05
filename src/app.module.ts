@@ -6,10 +6,13 @@ import { UserModule } from './user/user.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './user/entity/user.entity';
 import { AuthModule } from './auth/auth.module';
+import { CategoryModule } from './category/category.module';
+import { Category } from './category/entity/category.entity';
 
 @Module({
   imports: [
     UserModule,
+    CategoryModule,
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
@@ -21,7 +24,7 @@ import { AuthModule } from './auth/auth.module';
       username: 'postgres',
       password: '1234',
       database: 'keymart',
-      entities: [User],
+      entities: [User, Category],
       synchronize: true,
     }),
     AuthModule,
