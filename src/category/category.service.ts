@@ -1,10 +1,13 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+
+
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Like, Repository } from 'typeorm';
 import { Category } from './entity/category.entity';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
-import { CategoryListResponse } from './dto/category-list-response.dto';
+import { PaginatedResponseDto } from '../common/dto/paginated-response.dto';
+import { SortOrder } from 'src/common/dto/pagination-query.dto';
 
 
 
@@ -16,23 +19,42 @@ export class CategoryService {
   ) {}
 
   async createCategory(dto: CreateCategoryDto): Promise<Category> {
+    const existingCategory = await this.categoryRepository.findOne({
+      where: { name: dto.name },
+    });
+
+    if (existingCategory) {
+      throw new ConflictException(`Category '${dto.name}' already exists`);
+    }
+
     const category = this.categoryRepository.create(dto);
     return this.categoryRepository.save(category);
   }
 
-  async getCategories(page = 1, limit = 10): Promise<CategoryListResponse> {
+  async getCategories(page = 1, limit = 10, sort?: SortOrder, search?: string): Promise<PaginatedResponseDto<Category>> {
+    const normalizedSearch = search?.trim();
+
     const [data, total] = await this.categoryRepository.findAndCount({
       skip: (page - 1) * limit,
       take: limit,
-      order: { id: 'ASC' },
+      order: { createdAt: sort || 'DESC' },
+      where: normalizedSearch ? { name: Like(`%${normalizedSearch}%`) } : undefined,
     });
+
+    const totalPages = Math.ceil(total / limit) || 1;
 
     return {
       data,
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit) || 1,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+        nextPage: page < totalPages ? page + 1 : null,
+        previousPage: page > 1 ? page - 1 : null,
+        hasNextPage: page < totalPages,
+        hasPreviousPage: page > 1,
+      },
     };
   }
 

@@ -15,8 +15,8 @@ import {
 import { Category } from './entity/category.entity';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
-import { CategoryPaginationDto } from './dto/category-pagination.dto';
-import { CategoryListResponse } from './dto/category-list-response.dto';
+import { PaginationQueryDto } from '../common/dto/pagination-query.dto';
+import { PaginatedResponseDto } from '../common/dto/paginated-response.dto';
 
 @Controller('api/category')
 export class CategoryController {
@@ -29,9 +29,14 @@ export class CategoryController {
 
   @Get('get-categories')
   async getCategories(
-    @Query() paginationDto: CategoryPaginationDto,
-  ): Promise<CategoryListResponse> {
-    return this.categoryService.getCategories(paginationDto.page, paginationDto.limit);
+    @Query() paginationDto: PaginationQueryDto,
+  ): Promise<PaginatedResponseDto<Category>> {
+    return this.categoryService.getCategories(
+      paginationDto.page,
+      paginationDto.limit,
+      paginationDto.sort,
+      paginationDto.search,
+    );
   }
 
   @Get('get-category/:id')
