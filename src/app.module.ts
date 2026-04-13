@@ -8,6 +8,7 @@ import { User } from './user/entity/user.entity';
 import { AuthModule } from './auth/auth.module';
 import { CategoryModule } from './category/category.module';
 import { Category } from './category/entity/category.entity';
+import { BrandModule } from './brand/brand.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { Category } from './category/entity/category.entity';
       synchronize: true,
     }),
     AuthModule,
+    BrandModule,
   ],
   controllers: [AppController],
   providers: [AppService],
